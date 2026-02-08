@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@src/prisma/prisma.service';
 import { SearchProfessorDto } from './dto/search-professor.dto';
 import {
   PaginatedProfessorsResponseDto,
@@ -7,13 +7,13 @@ import {
   ProfessorResponseDto,
 } from './dto/professor-response.dto';
 import { Prisma } from '@prisma/client';
-import { 
-  ProfessorWithRelations, 
-  UniversityRelation, 
-  FacultyRelation, 
-  CourseRelation, 
-  TagRelation, 
-  ReviewWithCourse 
+import {
+  ProfessorWithRelations,
+  UniversityRelation,
+  FacultyRelation,
+  CourseRelation,
+  TagRelation,
+  ReviewWithCourse,
 } from './interfaces/professor.interface';
 
 @Injectable()
@@ -23,16 +23,16 @@ export class ProfessorsService {
   async findAll(
     searchDto: SearchProfessorDto,
   ): Promise<PaginatedProfessorsResponseDto> {
-    const { 
-      name, 
-      universityId, 
-      facultyId, 
-      department, 
-      minRating, 
-      maxRating, 
+    const {
+      name,
+      universityId,
+      facultyId,
+      department,
+      minRating,
+      maxRating,
       minReviews,
-      page = 1, 
-      limit = 20 
+      page = 1,
+      limit = 20,
     } = searchDto;
 
     // Convertir parámetros a sus tipos correctos
@@ -40,9 +40,12 @@ export class ProfessorsService {
     const parsedLimit = Number(limit);
     const parsedUniversityId = universityId ? Number(universityId) : undefined;
     const parsedFacultyId = facultyId ? Number(facultyId) : undefined;
-    const parsedMinRating = minRating !== undefined ? Number(minRating) : undefined;
-    const parsedMaxRating = maxRating !== undefined ? Number(maxRating) : undefined;
-    const parsedMinReviews = minReviews !== undefined ? Number(minReviews) : undefined;
+    const parsedMinRating =
+      minRating !== undefined ? Number(minRating) : undefined;
+    const parsedMaxRating =
+      maxRating !== undefined ? Number(maxRating) : undefined;
+    const parsedMinReviews =
+      minReviews !== undefined ? Number(minReviews) : undefined;
 
     // Construir el filtro base
     const where: Prisma.ProfessorWhereInput = {};
@@ -74,29 +77,35 @@ export class ProfessorsService {
     }
 
     // Filtros para relaciones
-    const universityFilter = parsedUniversityId ? {
-      some: {
-        universityId: parsedUniversityId,
-      },
-    } : undefined;
+    const universityFilter = parsedUniversityId
+      ? {
+          some: {
+            universityId: parsedUniversityId,
+          },
+        }
+      : undefined;
 
-    const facultyFilter = parsedFacultyId ? {
-      some: {
-        facultyId: parsedFacultyId,
-      },
-    } : undefined;
+    const facultyFilter = parsedFacultyId
+      ? {
+          some: {
+            facultyId: parsedFacultyId,
+          },
+        }
+      : undefined;
 
     // Filtro por departamento (a través de la universidad)
-    const departmentFilter = department ? {
-      some: {
-        university: {
-          department: {
-            contains: department,
-            mode: 'insensitive',
+    const departmentFilter = department
+      ? {
+          some: {
+            university: {
+              department: {
+                contains: department,
+                mode: 'insensitive',
+              },
+            },
           },
-        },
-      },
-    } : undefined;
+        }
+      : undefined;
 
     // Aplicar filtros de relaciones si están definidos
     if (universityFilter) {
@@ -110,7 +119,8 @@ export class ProfessorsService {
     // Para el filtro de departamento, usamos any para evitar problemas de tipado
     // ya que Prisma tiene tipos complejos para las relaciones anidadas
     if (departmentFilter) {
-      where.universities = departmentFilter as Prisma.ProfessorUniversityListRelationFilter;
+      where.universities =
+        departmentFilter as Prisma.ProfessorUniversityListRelationFilter;
     }
 
     // Calcular paginación
@@ -142,8 +152,8 @@ export class ProfessorsService {
     });
 
     // Transformar los datos para la respuesta
-    const data = professors.map(
-      (professor) => this.mapToProfessorResponse(
+    const data = professors.map((professor) =>
+      this.mapToProfessorResponse(
         professor as unknown as ProfessorWithRelations,
       ),
     );
@@ -165,7 +175,7 @@ export class ProfessorsService {
   async findOne(id: number): Promise<ProfessorDetailResponseDto> {
     // Asegurarse de que el ID sea un número
     const parsedId = Number(id);
-    
+
     const professor = await this.prisma.professor.findUnique({
       where: { id: parsedId },
       include: {

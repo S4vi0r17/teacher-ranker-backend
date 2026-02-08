@@ -41,6 +41,7 @@
     "@nestjs/testing": "^11.1.13",
     "@swc/cli": "^0.8.0",
     "@swc/core": "^1.15.11",
+    "@swc/jest": "^0.2.39",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.2.2",
@@ -69,8 +70,16 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "moduleNameMapper": {
+      "^@src/(.*)$": "<rootDir>/$1"
+    },
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "@swc/jest",
+        {
+          "swcrc": ".swcrc.jest"
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
